@@ -1,0 +1,3 @@
+# Keep line endings stable across platforms: the shim is an executable Node
+# script and the patch file is parsed as YAML.
+* text=auto eol=lf
