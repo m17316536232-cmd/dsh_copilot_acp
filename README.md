@@ -178,6 +178,30 @@ dsh plugin --profile desktop remove dsh-copilot-acp
    file was **NOT CREATED**; the middle layer logged `ALLOW kind=edit` / `ALLOW kind=read` /
    `DENY kind=edit`.
 
+4. **Load safety, 11/11** (`node test-load-guard.mjs`): rebuilds a profile carrying a stale
+   `@deepseek-ai/dsh-credentials` (one that exports no `credentialKey`) and asserts the plugin
+   **still loads**, that `apply()` **only goes inert and logs** when a backend is missing or throws
+   on import, and that the happy path logs no error.
+
+## Why it cannot take DSH down at boot
+
+This plugin imports **nothing but Node builtins and its own files at module scope**. Every
+third-party package is imported lazily inside `apply()`, and any failure leaves the plugin **inert
+with a log line** while the host boots normally.
+
+That discipline comes from a real incident: a profile's `node_modules` carried a **stale transitive
+copy** of `@deepseek-ai/dsh-credentials@0.1.0-rc.8`, which shadows the installation's `0.1.2-rc.1`
+under Node's nearest-`node_modules` rule. That older version does not export `credentialKey`, so a
+top-level `import { credentialKey }` raised
+`SyntaxError: … does not provide an export named 'credentialKey'` **while loading** — and a
+load-time throw terminates the whole `dsh` process, so DSH would not start.
+
+The fix is the discipline above: the export is no longer required (an equivalent `<scope>/<id>`
+string key is used) and both backends became dynamic imports.
+
+> For every DSH plugin author: **a stale transitive dependency in a profile shadows the
+> installation's version**, which makes a top-level third-party `import` a potentially fatal pattern.
+
 ## Known limitations
 
 - **Exact version pinning**: `@deepseek-ai/dsh-subagent-acp` and `@deepseek-ai/dsh-tool-subagent` are

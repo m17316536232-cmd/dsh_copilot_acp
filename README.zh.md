@@ -153,6 +153,26 @@ dsh plugin --profile desktop remove dsh-copilot-acp
    创建一个文件、并创建 `C:\Users\<user>\e2e-escape-probe.txt`"。结果：区内文件 CREATED，区外文件
    **NOT CREATED**；中间层同时输出 `ALLOW kind=edit` / `ALLOW kind=read` / `DENY kind=edit`。
 
+4. **装载安全性**（`node test-load-guard.mjs`，11 项检查）：在临时目录里复刻"profile 里存在陈旧
+   `@deepseek-ai/dsh-credentials`（不导出 `credentialKey`）"的条件，断言插件**装载期不抛错**、
+   `apply()` 在后端缺失/导入即抛错时**只失活并记录日志**、以及正常路径下不产生错误日志。
+
+## 为什么它不会拖垮 DSH 的启动
+
+本插件在**模块装载期不导入任何第三方包**（只有 Node 内置模块与本包自己的文件）。所有第三方依赖都在 `apply()`
+里**动态导入**，任何失败只会让插件自己**失活并记录日志**，宿主照常启动。
+
+这条纪律来自一次真实事故：某个 profile 的 `node_modules` 里残留了一份**陈旧的传递依赖**
+`@deepseek-ai/dsh-credentials@0.1.0-rc.8`，在 Node 的「就近 node_modules」规则下**遮蔽了安装目录里的
+`0.1.2-rc.1`**；旧版本不导出 `credentialKey`，于是插件顶层的 `import { credentialKey }` 在**装载期**抛出
+`SyntaxError: … does not provide an export named 'credentialKey'` —— 装载期异常会直接终止整个 `dsh` 进程，
+DSH 因此无法启动。
+
+修复即上述纪律（不再依赖该导出，改用等价的 `<scope>/<id>` 字符串键；两个后端也改为动态导入）。
+
+> 给所有 DSH 插件作者的提醒：**profile 里的陈旧传递依赖会遮蔽安装目录的版本**，顶层第三方 `import` 因此是
+> 一类可致命的写法。
+
 ## 已知限制
 
 - **依赖版本精确对齐**：`@deepseek-ai/dsh-subagent-acp` 与 `@deepseek-ai/dsh-tool-subagent` 被**精确钉版本**
