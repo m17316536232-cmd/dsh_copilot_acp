@@ -1,0 +1,17 @@
+# Auto-activated layer of the dsh-copilot-acp bundle.
+#
+# `dsh plugin --profile <name> add dsh-copilot-acp` appends this package to
+# `dsh.profile.bundles` (it declares `dsh.bundle`), so the entry below is
+# mounted on the next boot. Removing the dependency removes it from the layer
+# stack again, and a user-layer patch can switch it off without uninstalling:
+#
+#   - id: copilot-acp
+#     disabled: true
+#
+# The plugin itself resolves the Copilot CLI binary, registers the GitHub
+# sign-in flow, and mounts both the ACP subagent provider and the model-facing
+# delegation tool.
+- insert:
+    - id: copilot-acp
+      name: 'dsh-copilot-acp'
+      config: {}

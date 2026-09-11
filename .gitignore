@@ -1,0 +1,5 @@
+# Build artifacts
+*.tgz
+
+# Dependencies (installed by pnpm when a profile consumes this package)
+node_modules/
