@@ -66,6 +66,13 @@ Have copilot investigate that stack trace in the background while you keep writi
 A child does **not** see the current conversation and returns only its final text, so write a
 self-contained `prompt`.
 
+> **Practical tip: tell it to use its built-in file tools and not the shell.** With `allowShell:
+> false` (the default), Copilot sometimes reaches for a command-line tool to read or write a file;
+> after the refusal it may simply **stop** (the middle layer's notice explains why). Measured: the
+> first delegation was blocked (`blocked a execute: shell execution is disabled by policy`), while
+> the same task with that one instruction completed in a single pass — reading a 22 KB Chinese
+> document and writing a summary file, with no refusals at all.
+
 ## Permission model
 
 For every tool call the CLI sends an ACP `session/request_permission` carrying `kind` and

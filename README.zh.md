@@ -58,6 +58,11 @@ dsh plugin --profile desktop add "github:<owner>/dsh-copilot-acp"
 
 子代理**看不到当前对话**，只会回传最终文本；`prompt` 要写成自包含的任务。
 
+> **实用建议：在委派语里加一句"只用内置文件工具，不要用 shell"。** 默认 `allowShell: false`，而 Copilot 有时会
+> 优先选择用命令行去读/写文件；被策略拒绝后它可能**直接停下**（我们的通告会说明原因）。实测：不加这句时第一次
+> 委派被拦（`blocked a execute: shell execution is disabled by policy`）；加上后同一任务一次完成
+> （读 22KB 中文文档 → 写出总结文件，全程无拒绝）。
+
 ## 权限模型（本插件的核心）
 
 每一次工具调用，Copilot CLI 都会发来一条 ACP `session/request_permission`，其中带
