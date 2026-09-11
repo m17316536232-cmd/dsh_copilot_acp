@@ -20,11 +20,20 @@ delegating session's own workspace.
 ## Install
 
 ```bash
+# from npm (once published)
 dsh plugin --profile desktop add dsh-copilot-acp
+
+# or straight from a git repository (no publishing needed)
+dsh plugin --profile desktop add "github:<owner>/dsh-copilot-acp"
 ```
 
 The package declares `dsh.bundle`, so it joins that profile's plugin layer stack on install and
 leaves it again on removal.
+
+> Where it lands: pnpm puts the **installed copy** in `~/.dsh/profiles/<profile>/node_modules/` —
+> that is DSH's plugin install directory. Both commands above record only a version or a repository
+> name in the profile manifest, never a local path. Avoid installing from a local tarball or
+> directory: the manifest would then be coupled to that path forever.
 
 > **Windows: paths containing spaces.** `dsh plugin ... add "<local path with spaces>"` is currently
 > split on the space by the DSH launcher (`spawnSync(..., { shell: true })` without quoting). Install

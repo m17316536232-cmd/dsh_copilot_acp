@@ -18,10 +18,17 @@ English | [English](README.md)
 ## 安装
 
 ```bash
+# 从 npm 安装（发布之后）
 dsh plugin --profile desktop add dsh-copilot-acp
+
+# 或直接从 git 仓库安装（无需发布到 npm）
+dsh plugin --profile desktop add "github:<owner>/dsh-copilot-acp"
 ```
 
 本包声明了 `dsh.bundle`，因此安装后**自动进入该 profile 的插件层栈**，卸载后自动退出。
+
+> 依赖说明：`pnpm` 会把**已安装副本**放进 `~/.dsh/profiles/<profile>/node_modules/`（这才是 DSH 的插件安装目录）；
+> 上面两种方式清单里只记录**版本号或仓库名**，不含任何本地路径。**不要**用本地 tarball/目录安装，否则清单会永久耦合到那个路径。
 
 > **Windows 上的路径含空格问题**：`dsh plugin ... add "<含空格的本地路径>"` 目前会被 DSH 启动器
 > （`spawnSync(..., { shell: true })` 未加引号）按空格拆成两个参数。用本地路径安装时请改为直接调用 pnpm：
