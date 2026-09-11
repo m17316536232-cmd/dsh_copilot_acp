@@ -199,8 +199,15 @@ load-time throw terminates the whole `dsh` process, so DSH would not start.
 The fix is the discipline above: the export is no longer required (an equivalent `<scope>/<id>`
 string key is used) and both backends became dynamic imports.
 
-> For every DSH plugin author: **a stale transitive dependency in a profile shadows the
-> installation's version**, which makes a top-level third-party `import` a potentially fatal pattern.
+**This package therefore declares no `peerDependencies` at all.** Declaring a peer makes pnpm
+install an *extra copy* of a shared harness package into your profile, and a copy at the profile root
+shadows the installation's version under Node's nearest-`node_modules` rule — which is precisely how
+the incident above happened (a peer declaration pulled in `dsh-credentials@0.1.0-rc.8`). The plugin
+needs no harness package present at load time, so those declarations had no reason to exist.
+
+> For every DSH plugin author: **a copy of a shared package inside a profile shadows the
+> installation's version**, so (a) a top-level third-party `import` is a potentially fatal pattern,
+> and (b) unnecessary `peerDependencies` actively create that shadowing.
 
 ## Known limitations
 
