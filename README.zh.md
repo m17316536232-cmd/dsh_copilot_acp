@@ -63,6 +63,21 @@ dsh plugin --profile desktop add "github:<owner>/dsh-copilot-acp"
 > 委派被拦（`blocked a execute: shell execution is disabled by policy`）；加上后同一任务一次完成
 > （读 22KB 中文文档 → 写出总结文件，全程无拒绝）。
 
+### 在 DSH 界面里能看到什么（实测）
+
+| 委派方式 | 会话头部「任务」面板 | 「子代理目录」（头部 `/` 触发器） |
+|---|---|---|
+| **前台**（默认） | **不显示**（没有 job） | **不显示** |
+| **后台**（`run_in_background: true`） | **可见**：一行 job，含标签（就是委派时的 `description`，建议写 3–5 个词）、状态与逐秒计时；结束后转为灰化的已结算行 | **仍然不显示** |
+
+原因在 DSH 的机制里：子代理目录列举的是**本地会话语料中的子会话**（`{parentSessionId, childSessionId, mode}`），
+而 ACP 孩子是**跨进程一次性子代理** —— 它的会话 id 生在 Copilot 自己的进程里、只存在于 ACP 线路上，宿主没有对应
+Session 记录（官方 ACP 后端文档的原文即 *"not trace-enumerable … no local child session in the parent's session
+corpus"*）；`list_agents` 也**有意跳过**一次性子代理（它们无法接收 `send_message`）。
+
+因此：**耗时任务请用后台方式委派**，这样在任务面板可见、也能被 `job_output` 收集；ACP 孩子的中间过程（推理与
+工具活动）不会上报给 DSH，只有最终文本回来。
+
 ## 权限模型（本插件的核心）
 
 每一次工具调用，Copilot CLI 都会发来一条 ACP `session/request_permission`，其中带

@@ -73,6 +73,23 @@ self-contained `prompt`.
 > the same task with that one instruction completed in a single pass — reading a 22 KB Chinese
 > document and writing a summary file, with no refusals at all.
 
+### What you can see in the DSH UI (measured)
+
+| How the delegation runs | Session-header **Jobs** surface | **Subagent catalog** (header `/` trigger) |
+|---|---|---|
+| **Foreground** (default) | **nothing** (no job is created) | **nothing** |
+| **Background** (`run_in_background: true`) | **visible**: one job row with its label (the `description` you passed — prefer 3-5 words), status and a per-second timer; it settles into a de-emphasized row | **still nothing** |
+
+That asymmetry is DSH's design, not a configuration: the subagent catalog enumerates **child Sessions
+in the local session corpus** (`{parentSessionId, childSessionId, mode}`), while an ACP child is a
+**cross-process one-shot** whose session id lives inside Copilot's own process and only on the ACP
+wire — the host has no Session record for it (the vendor's own wording: *"not trace-enumerable … no
+local child session in the parent's session corpus"*). `list_agents` likewise **omits one-shot
+children** because they cannot accept `send_message`.
+
+So: **delegate long tasks in the background** to get a visible, collectable job. Intermediate
+progress (reasoning, tool activity) is never reported to DSH — only the child's final text returns.
+
 ## Permission model
 
 For every tool call the CLI sends an ACP `session/request_permission` carrying `kind` and
